@@ -47,7 +47,7 @@ var endState = {
 
   update: function() {
     var fallenVial = game.physics.arcade.collide(vials, ground);
-    game.physics.arcade.collide(vials);
+    game.physics.arcade.collide(vials, vials);
   },
 
   bloodDrop: function() {

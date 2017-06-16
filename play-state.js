@@ -7,7 +7,8 @@ var ground,
     youthScore,
     audioMusic, audioGotYoungBlood, audioGotOldBlood,
     audioJump, audioFailToJump, audioLand,
-    audioVialBreak;
+    audioVialBreak,
+    startTime;
 
 var playState = {
 
@@ -28,11 +29,13 @@ var playState = {
     game.load.audio('failToJump', 'audio/252235__reitanna__soft-grunt.wav');
     game.load.audio('land', 'audio/146981__jwmalahy__thud1.wav');
     game.load.audio('vialBreak', 'audio/93079__cgeffex__splash.mp3');
+    game.load.image('reporterObstacle', 'img/reporter.png');
   },
 
   create: function() {
     var youngBloodVial,
-        oldBloodVial;
+        oldBloodVial,
+        startTime = game.time.now;
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
     game.add.sprite(0, 0, 'sky');
@@ -58,6 +61,10 @@ var playState = {
     // set the vials
     vials = game.add.group();
     vials.enableBody = true;
+
+    // set the reporters
+    reporters = game.add.group();
+    reporters.enableBody = true;
 
     // set the character
     peter = game.add.sprite(32, game.world.height - 305, 'character');
@@ -99,6 +106,9 @@ var playState = {
     // game.time.events.repeat(Phaser.Timer.SECOND, 99999, this.agePeter, this);
     game.time.events.loop(Phaser.Timer.SECOND, this.agePeter, this);
 
+    // Reporters don't want you to win
+    game.time.events.repeat(Phaser.Timer.SECOND * 15, 99999, this.dropReporter, this);
+
     // get that score
     game.add.text(20, 16, 'Youth', { font: '25px VT323', fill: '#000' });
     youthScore = game.add.text(20, 35, peter.bloodPower, { font: '60px VT323', fill: '#000' });
@@ -108,6 +118,8 @@ var playState = {
     var hitGround = game.physics.arcade.collide(peter, ground),
         fallenVial = game.physics.arcade.collide(vials, ground);
 
+    game.physics.arcade.collide(reporters, ground);
+    game.physics.arcade.collide(reporters, peter);
     game.physics.arcade.overlap(peter, vials, this.bloodHit, null, this);
 
     if (! peter.body.touching.down) {
@@ -325,6 +337,18 @@ var playState = {
   agePeter: function() {
     peter.bloodPower += 1;
     youthScore.text = peter.bloodPower;
+  },
+
+  dropReporter: function() {
+    var warningText = game.add.text(game.world.centerX - 100, 200, 'Reporter!', { font: '45px VT323', fill: '#000' });
+    var reporter = reporters.create(game.world.randomX, -30, "reporterObstacle");
+    reporter.body.gravity.y = 350;
+    reporter.body.collideWorldBounds = true;
+    game.physics.arcade.enable(reporter);
+    setInterval(function() { warningText.destroy(); }, 3000);
+
+    // get rid of reporter after 15s
+    setTimeout(function() { reporter.kill(); }, 20000);
   },
 
   end: function() {
