@@ -40,11 +40,12 @@ var pregameState = {
     playButton.animations.play('blink');
 
     // Add music
-    music = game.add.audio('introMusic');
+    music = game.add.audio('introMusic', 0.3, true);
     music.play();
   },
 
   startGame: function() {
+    music.stop();
     game.state.start('play');
   }
 }
